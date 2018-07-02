@@ -2,8 +2,8 @@ package com.udacity.sandwichclub;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -18,8 +18,6 @@ public class DetailActivity extends AppCompatActivity {
 
     public static final String EXTRA_POSITION = "extra_position";
     private static final int DEFAULT_POSITION = -1;
-    private Sandwich currentSandwich = null;
-    private static final String KEY_IMAGE_PATH = "image_path_key";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,13 +38,12 @@ public class DetailActivity extends AppCompatActivity {
 
         String[] sandwiches = getResources().getStringArray(R.array.sandwich_details);
         String json = sandwiches[position];
-        Sandwich sandwich = JsonUtils.parseSandwichJson(json);
+        Sandwich sandwich = JsonUtils.parseSandwichJson(json, this);
         if (sandwich == null) {
             // Sandwich data unavailable
             closeOnError();
             return;
         }
-        currentSandwich = sandwich;
 
         populateUI(sandwich);
     }
@@ -64,6 +61,8 @@ public class DetailActivity extends AppCompatActivity {
         ImageView ingredientsIv = findViewById(R.id.image_iv);
         Picasso.with(this)
                 .load(sandwich.getImage())
+                .placeholder(R.mipmap.ic_launcher)
+                .error(R.mipmap.ic_launcher_round)
                 .into(ingredientsIv);
 
         populateAliasUI(sandwich.getAlsoKnownAs());
@@ -80,19 +79,22 @@ public class DetailActivity extends AppCompatActivity {
         TextView alsoKnownAsTV = findViewById(R.id.also_known_tv);
 
         if(aka == null || aka.size() == 0) {
+            //This has largely been replaced by utilizing JSONObject.optString() in the JsonUtils class.
             alsoKnownAsTV.setText(R.string.alsoKnownAsUnavailable);
             return;
         }
-        else
-            alsoKnownAsTV.setText(""); //Clear text buffer.
+        else {
+            StringBuilder alsoKnownAsBuffer = new StringBuilder(""); //Set text buffer.
 
-        //Append each alias to the list, appending commas or period based on position in list.
-        for(int index = 0; index < aka.size(); index++) {
+            //Append each alias to the list, appending commas or period based on position in list.
+            for (int index = 0; index < aka.size(); index++) {
 
-            if(index > 0 && index != aka.size())
-                alsoKnownAsTV.append(", ");
+                if (index > 0 && index != (aka.size()))
+                    alsoKnownAsBuffer.append(", ");
 
-            alsoKnownAsTV.append(aka.get(index));
+                alsoKnownAsBuffer.append(aka.get(index));
+            }
+            alsoKnownAsTV.setText(alsoKnownAsBuffer.toString());
         }
     }
 
@@ -101,6 +103,7 @@ public class DetailActivity extends AppCompatActivity {
         TextView originTV = findViewById(R.id.origin_tv);
 
         if(origin == null || origin.equals("")) {
+            //This has largely been replaced by utilizing JSONObject.optString() in the JsonUtils class.
             originTV.setText(R.string.placeOfOriginUnavailable);
             return;
         }
@@ -113,6 +116,7 @@ public class DetailActivity extends AppCompatActivity {
         TextView descriptionTV = findViewById(R.id.description_tv);
 
         if(description == null || description.equals("")) {
+            //This has largely been replaced by utilizing JSONObject.optString() in the JsonUtils class.
             descriptionTV.setText(R.string.descriptionUnavailable);
             return;
         }
@@ -125,19 +129,25 @@ public class DetailActivity extends AppCompatActivity {
         TextView ingredientsTV = findViewById(R.id.ingredients_tv);
 
         if(ingredients == null || ingredients.size() == 0) {
+            //This has largely been replaced by utilizing JSONObject.optString() in the JsonUtils class.
             ingredientsTV.setText(R.string.ingredientsUnavailable);
             return;
         }
-        else
+        else {
             ingredientsTV.setText(""); //Clear text buffer.
 
-        //Append each ingredient to the list, appending commas or period based on position in list.
-        for(int index = 0; index < ingredients.size(); index++) {
+            //Append each ingredient to the list, appending commas or period based on position in list.
+            /*
+            for(int index = 0; index < ingredients.size(); index++) {
 
-            if(index > 0 && index != ingredients.size())
-                ingredientsTV.append(", ");
+                if(index > 0 && index != ingredients.size())
+                    ingredientsTV.append(", ");
 
-            ingredientsTV.append(ingredients.get(index));
+                ingredientsTV.append(ingredients.get(index));
+            }
+            */
+            String str = TextUtils.join(", ", ingredients);
+            ingredientsTV.setText(str);
         }
     }
 }

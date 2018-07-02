@@ -1,7 +1,9 @@
 package com.udacity.sandwichclub.utils;
 
+import android.content.Context;
 import android.util.Log;
 
+import com.udacity.sandwichclub.R;
 import com.udacity.sandwichclub.model.Sandwich;
 
 import org.json.JSONArray;
@@ -22,7 +24,7 @@ public class JsonUtils {
     private static final String KEY_IMAGE = "image";
     private static final String KEY_INGREDIENTS = "ingredients";
 
-    public static Sandwich parseSandwichJson(String json) {
+    public static Sandwich parseSandwichJson(String json, Context context) {
         Log.d(TAG, "parseSandwichJson: " + json);
         /* Example JSON string.
         parseSandwichJson:
@@ -67,26 +69,30 @@ public class JsonUtils {
             sandwich.setAlsoKnownAs(alsoKnownAsStrings);
 
             //Extract place of origin and store in new sandwich
-            sandwich.setPlaceOfOrigin(jsonObject.getString(KEY_PLACE_ORIGIN));
+            sandwich.setPlaceOfOrigin(jsonObject.optString(KEY_PLACE_ORIGIN, context.getString(R.string.alsoKnownAsUnavailable)));
 
             //Extract description and store in new sandwich
-            sandwich.setDescription(jsonObject.getString(KEY_DESCRIPTION));
+            sandwich.setDescription(jsonObject.optString(KEY_DESCRIPTION, context.getString(R.string.descriptionUnavailable)));
 
             //Extract image and store in new sandwich
-            sandwich.setImage(jsonObject.getString(KEY_IMAGE));
+            sandwich.setImage(jsonObject.optString(KEY_IMAGE));
 
             //Extract ingredients from object.
-            JSONArray ingredientsJSON = jsonObject.getJSONArray(KEY_INGREDIENTS);
-            List<String> ingredientsStrings = new ArrayList<>();
+            JSONArray ingredientsJSON = jsonObject.optJSONArray(KEY_INGREDIENTS);
 
-            //Parse knownas into list of strings.
-            for(int index = 0; index < ingredientsJSON.length(); index++)
-            {
-                ingredientsStrings.add(ingredientsJSON.getString(index));
+            if(ingredientsJSON != null) {
+                List<String> ingredientsStrings = new ArrayList<>();
+
+                //Parse ingredients into list of strings.
+                for (int index = 0; index < ingredientsJSON.length(); index++) {
+                    ingredientsStrings.add(ingredientsJSON.getString(index));
+                }
+
+                //Store ingredients into sandwich
+                sandwich.setIngredients(ingredientsStrings);
             }
-
-            //Store ingredients into sandwich
-            sandwich.setIngredients(ingredientsStrings);
+            else
+                sandwich.setIngredients(null);
 
         } catch (JSONException e) {
             Log.e(TAG, "parseSandwichJson: " + e.getMessage() );
